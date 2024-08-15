@@ -12,40 +12,38 @@ const formatData = (data) => {
   });
 };
 
-// TODO: Test this
 const filterData = (data, range) => {
   
-  // Convert datetime strings to Date objects
-  const dateObjects = data.map((el) => new Date(el));
-
-  // Find the newest datetime
-  const newestDate = new Date(Math.max(...dateObjects));
+  // Find the newest datetime in the data
+  const newestDate = new Date(Math.max(...data.map((el) => new Date(el.date))));
 
   // Define time range in milliseconds
   let timeRange;
   switch (range) {
     case "day":
-      timeRange = 24 * 60 * 60 * 1000;
+      timeRange = (24 * 60 * 60 * 1000)-1;
       break;
     case "week":
-      timeRange = 7 * 24 * 60 * 60 * 1000;
+      timeRange = (7 * 24 * 60 * 60 * 1000)-1;
       break;
     case "year":
-      timeRange = 365 * 24 * 60 * 60 * 1000;
+      timeRange = (365 * 24 * 60 * 60 * 1000)-1;
       break;
   }
 
-  const filteredDates = dateObjects.filter((date) => {
+  const filteredData = data.filter((el) => {
+    const date = new Date(el.date);
     const timeDifference = newestDate - date;
     return timeDifference <= timeRange;
   });
+  
+  // Sort the filtered data by date in descending order
+  // Not required just neat for debugging
+  const sortedData = filteredData.sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
 
-  // Convert filtered Date objects back to strings
-  const filteredDateStrings = dateObjects.map((date) => {
-    date.toISOString();
-  });
-
-  console.log(filteredDateStrings);
+  return sortedData;
 };
 
 export const StockDetailPage = () => {
@@ -119,11 +117,12 @@ export const StockDetailPage = () => {
           ),
         ]);
 
-        // filterData(responses[0].data);
+        ;
+
         setChartData({
-          day: formatData(responses[0].data),
-          week: formatData(responses[1].data),
-          year: formatData(responses[2].data),
+          day: formatData(filterData(responses[0].data,"day")),
+          week: formatData(filterData(responses[1].data,"week")),
+          year: formatData(filterData(responses[2].data,"year")),
         });
       } catch (error) {
         console.error("Error fetching data:", error);
